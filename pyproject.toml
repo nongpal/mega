@@ -1,0 +1,9 @@
+[project]
+name = "mega"
+version = "0.1.0"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "cython>=3.1.0",
+    "setuptools>=80.7.1",
+]
