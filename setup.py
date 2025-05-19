@@ -1,13 +1,26 @@
-from setuptools import setup
+from setuptools import Extension, find_packages, setup
 from Cython.Build import cythonize
+import numpy as np
+import os
 
-lib_files: list[str] = [
-    "mega/op/gamma.pyx"
+ext = [
+    Extension(
+        "mega.utils.constant",
+        ["mega/utils/constant.pyx"],
+    ),
+    Extension(
+        "mega.op.gamma",
+        ["mega/op/gamma.pyx"],
+        include_dirs=[np.get_include()],
+    ),
 ]
 
+os.makedirs("mega/utils", exist_ok=True)
+os.makedirs("mega/op", exist_ok=True)
+
 setup(
-    name="mega number utils", 
-    ext_modules=cythonize(lib_files, language_level=3),
-    script_args=["build_ext"],
-    options={"build_ext": {"inplace": True}},
+    name="mega number utils",
+    packages=find_packages(),
+    ext_modules=cythonize(ext, language_level=3),
+    include_dirs=[np.get_include()]
 )
