@@ -1,3 +1,5 @@
+![Github Actions](https://img.shields.io/github/actions/workflow/status/WargaSlowy/mega/mega_test.yml?style=for-the-badge&logo=linux
+)
 ![GitHub License](https://img.shields.io/github/license/WargaSlowy/mega?style=for-the-badge)
 [![](https://dcbadge.limes.pink/api/server/https://discord.gg/xkvjwsDrnx)](https://discord.gg/xkvjwsDrnx)
 
@@ -6,8 +8,8 @@ Python package for perform curated arithmetic calculation with __Cython__. this 
 ## Build Package
 
 > [!NOTE]  
-> Make sure to install uv for build this package
-> for information you can check [here](https://docs.astral.sh/uv/getting-started/installation/) for initialization
+> Make sure to install `uv` for build this package.
+> Information you can check [here](https://docs.astral.sh/uv/getting-started/installation/) for initialization
 
 ```sh
 git clone https://github.com/mega
