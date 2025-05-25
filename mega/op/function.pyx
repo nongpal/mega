@@ -26,7 +26,7 @@
 from mega.utils.constant cimport PI_NUMBER, SQRT_PI
 from libc.math cimport sqrt, exp, sin, pow, cos
 
-def prime_factors(int n, bint unique=False):
+def prime_factors(int n, bint unique=False) -> list[int]:
     """"
     return prime factor of positive integer n
 
@@ -95,7 +95,7 @@ cdef class Haversine:
     """
     cdef double theta
 
-    def __cinit__(self, double theta):
+    def __cinit__(self, double theta) -> None:
         """
         constructor for haversine class
 
@@ -106,7 +106,7 @@ cdef class Haversine:
         """
         self.theta = theta
 
-    def __dealloc__(self):
+    def __dealloc__(self) -> None:
         """
         currently empty because no dynamic memory allocation
         is used
@@ -133,7 +133,7 @@ cdef class Haversine:
         """
         return self.theta
 
-    def set_theta(self, double new_theta):
+    def set_theta(self, double new_theta) -> None:
         """
         update internal angle theta
 
@@ -144,151 +144,185 @@ cdef class Haversine:
         """
         self.theta = new_theta
 
-cpdef double gamma(double point):
+    def __repr__(self) -> str:
+        return f"Haversine(self.theta) = {Haversine(self.theta).compute()}"
+
+cdef class Gamma:
+    cdef double z
+    cdef double[8] LANCZOS_COEFF
+    cdef double point
+    cdef dict cache
+
+    def __cinit__(self, double point) -> None:
+        self.LANCZOS_COEFF = [
+            676.5203681218851,
+            -1259.1392167224028,
+            771.32342877765313,
+            -176.61502916214059,
+            12.507343278686905,
+            -0.13857109526572012,
+            9.9843695780195716e-6,
+            1.5056327351493116e-7
+        ]
+        if point <= 0:
+            raise ValueError("only positive real number acc")
+        if point > 175.5:
+            raise OverflowError("currently input to large for computation")
+
+        self.point = point
+
+    cpdef double compute(self):
+        cdef int i
+        cdef double z = self.point
+        cdef double y = z
+        cdef double x = 0.99999999999980993
+        cdef int neg = 0
+
+        if self.point == 0.5:
+            return SQRT_PI
+
+        if self.point == 1.0 or self.point == 2.0:
+            return 1.0
+
+        cdef int n = <int>self.point
+        cdef long result
+        if self.point == n:
+            result = 1
+            for i in range(2, n):
+                result *= i
+            return <double>result
+
+        if z < 0.5:
+            y = 1.0 - z
+            neg = 1
+        
+        for i in range(8):
+            x += self.LANCZOS_COEFF[i] / (y + i)
+
+        cdef double t = y + 7.5
+        cdef double tmp = sqrt(2.0 * PI_NUMBER) * x * pow(t, y - 0.5) * exp(-t)
+        if neg:
+            return PI_NUMBER / (sin(PI_NUMBER * z) * tmp)
+        else:
+            return tmp
+    
+    def __repr__(self) -> str:
+        return f"Gamma({self.point}) = {Gamma(self.point).compute()}"
+
+
+cdef class JordanTotient:
     """
-    computing gamma function Γ(point) for real-valued `point > 0`
+    compute jordan totient function
 
-    implement using lanczos approximation which providing an efficient and
-    accurate way to compute Γ(z) for non-integer values
+    Jordan totient generalizae euler totient function and formula
+    defined as:
 
-    Parameter:
-        point (double): real number greater than zero at which to evaluate  gamma function
+    Jₖ(n) = nᵏ × ∏(p|n) [1 - 1/pᵏ] = nᵏ × ∏(p|n) (pᵏ - 1)/pᵏ
 
-    Return:
-        (double): value of the gamma function at `gamma`
+    Attribute:
+        n (int): number for which to compute the jordan totient
+        k (int): exponent applied each div in the formula
 
-    Note:
-        - Γ(0.5) = √π ≈ 1.77245385091
-        - Γ(1.0) = 1
-        - Γ(2.0) = 1
+    Methods:
+        compute(): compute jordan totient based on stored value
+        ___repr__(): string representation for debug
+        __getitem__(): allow indexing like dictionary
+        __setitem__(): manual cache value
 
     Example:
-    >>> gamma(0.5)
-    1.77245385091
-    
-    >>> gamma(5.0)
-    24.0
-
-    Reference:
-     - https://en.wikipedia.org/wiki/Gamma_function
-     - https://en.wikipedia.org/wiki/Lanczos_approximation
+    >>> jt = JordanTotient(6, 1)
+    >>> jt.compute()
+    2
     """
-    cdef double z = point
-    cdef double x, y, t, tmp, fact
-    cdef int i, n
-    cdef int neg = 0
+    cdef int n, k
+    cdef dict _cache
 
-    if point <= 0:
-        raise ValueError("point must be bigger than zero")
-    if point > 175.5:
-        raise OverflowError("input value too large, will be OverflowError")
+    def __cinit__(self, int n, int k) -> None:
+        """
+        initialize JordanTotient class
 
-    # special case
-    if point == 0.5:
-        return SQRT_PI
+        Parameter:
+            n (int): must be >= 1 - domain of jordan function
+            k (int): exponent
+        """
+        if n <= 0:
+            raise ValueError("only positive integers are accepted for n")
+        if k < 0:
+            raise ValueError("exponent k must be non-negative")
 
-    if point == 1.0 or point == 2.0:
-        return 1.0
+        self.n = n
+        self.k = k
+        self._cache = {}
 
-    # factorial shorcut for exact integer input
-    if z == <int>z:
-        n  = <int>z;
-        fact = 1.0
-        for i in range(2, n):
-            fact *= i
-        return fact
+    def __dealloc__(self) -> None:
+        self._cache.clear()
 
-    # duplicate check to avoid confusion
-    if point == int(point):
-        n = <int>point
-        result = 1.0
-        for i in range(2, n):
-            result *= i
+    def __repr__(self) -> str:
+        """
+        return string representation of the object
+        """
+        return f"JordanTotient({self.n}, {self.k})"
+
+    def __getitem__(self, tuple key) -> None:
+        """
+        custom indexing for precomputed value
+
+        Parameter:
+            key (tuple): should be (n, k)
+
+        Return:
+            (long): precomputed value if available
+        """
+        if not isinstance(key, tuple) or len(key) != 2:
+            raise TypeError("key must be tuple of (n, k)")
+
+        n_key, k_key = key
+
+        if (n_key, n_key) in self._cache:
+            return self._cache[(n_key, k_key)]
+
+        # create new instance to compute
+        temp = JordanTotient(n_key, k_key)
+        result = temp.compute()
+        self._cache[(n_key, k_key)] = result
         return result
 
-    # reset working variable
-    z = point
-    y = z
-    
-    # apply reflection formula
-    # this allow to compute (for small value)
-    neg = 0
-    if z < 0.5:
-        y = 1.0 - z
-        neg = 1
-    else:
-        y = z
+    def __setitem__(self, tuple key, long value) -> None:
+        """
+        manual cache value for faster future lookup
 
-    x = 0.99999999999980993
+        Parameter:
+            key (tuple): (n, k)
+            value (long): precomputed value to store
+        """
+        if not isinstance(key, tuple) or len(key) != 2:
+            raise TypeError("key must be tuple of (n, k)")
+        self._cache[key] = value
 
-    # coefficient from lanczos approximation with g=7 and n=8 terms
-    # theres are precomputed to balance accuracy and performance
-    cdef double[8] LANCZOS_COEFF = [
-        676.5203681218851,
-        -1259.1392167224028,
-        771.32342877765313,
-        -176.61502916214059,
-        12.507343278686905,
-        -0.13857109526572012,
-        9.9843695780195716e-6,
-        1.5056327351493116e-7
-    ]
-    
-    # accumulate terms of the series
-    for i in range(8):
-        x += LANCZOS_COEFF[i] / (y + i)
-    # compute intermediate value for the final formula
-    t = y + 7.5
-    tmp = sqrt(2.0 * PI_NUMBER) * x * pow(t, y - 0.5) * exp(-t)
-    # apply reflection formula if needed
-    if neg:
-        return PI_NUMBER / (sin(PI_NUMBER * z) * tmp)
-    return tmp
+    cpdef long compute(self):
+        """
+        this method implement jordan totient function
+        - for small n, using trial division and product over distinct primes
+        - for k = 0 return 0
+        - general case, compute n^k and applies the formula
 
-cpdef long jordan_totient(int n, int k) except -1:
-    """
-    compute jordan totient function which generalizes euler totient function
+        Return:
+            (long): value of jordan totient
+        """
+        if self.k == 0:
+            return 0
+        if self.n == 1:
+            return 1
 
-    Parameter:
-        n (int): positive integer 
-        k (int): non-negative integer exponent
+        cdef long res = <long>(pow(self.n, self.k))
+        cdef list primes = prime_factors(self.n)
 
-    Return:
-        (long): value of totient function
+        cdef int p
+        cdef long pk, numerator, denominator
 
-    Example:
-    >>> jordan_totient(6, 1)
-    2
-    >>> jordan_totient(10, 2)
-    80
-    """
-    if n <= 0:
-        raise ValueError("input `n` must positive integers")
-    if k < 0:
-        raise ValueError("exponent `k` must non-negative integer")
-
-    if k == 0:
-        return 0
-
-    if n == 1:
-        return 1
-
-    # acompute n^k
-    cdef long res = <long>(pow(n, k))
-    # get unique prime factor of n
-    cdef list primes = prime_factors(n)
-    # apply the formula for each prime factor
-    cdef int p
-    cdef long pk, numerator, denominator
-
-    for p in primes:
-        # compute p^k
-        pk = <long>(pow(p, k))
-        # compute (p^k - 1) / p^k as two separate integer operations
-        numerator = pk - 1
-        denominator = pk
-        # multiply result by numerator / denominator using integer
-        # arithmetic to make sure division happens before multiplication
-        # to preventing overflow
-        res = res // denominator * numerator
-    return res
+        for p in primes:
+            pk = <long>pow(p, self.k)
+            numerator = pk - 1
+            denominator = pk
+            res = res // denominator * numerator
+        return res
