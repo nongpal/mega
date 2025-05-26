@@ -44,4 +44,4 @@ print(gamma_function.compute())
 ## benchmark information
 
 **Sigma Function**
-![sigma_z_benchmark](test/sigma_z_benchmark_vertical.png)
+![sigma_z_benchmark](test/bench/sigma_z_benchmark_vertical.png)
