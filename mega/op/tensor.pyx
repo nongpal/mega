@@ -38,6 +38,14 @@ cdef class Tensor:
         long_data (long*): pointer to memory block for `long` type data
         double_data (double*): pointer memory block for `double` type data
         float_data (float*): pointer to memory block for `float` type data
+
+    
+    Example:
+    >>> tensor1 = Tensor((2, 3), [1, 2, 3, 4, 5, 6], dtype='long')
+    >>> tensor2 = Tensor((2, 3), [10, 20, 30, 40, 50, 60], dtype='long')
+    >>> tensor_add = tensor1.add(tensor2)
+    >>> print(tensor_add)
+    Tensor(shape=(2, 3), dtype=long, data=[11, 22, 33, ...])
     """
     cdef int *shape
     cdef int ndim
@@ -118,6 +126,86 @@ cdef class Tensor:
             free(self.double_data)
         if hasattr(self, "float_data") and self.float_data is not NULL:
             free(self.float_data)
+
+    cdef _get_value(self, int index):
+        if self._dtype == "int":
+            return self.int_data[index]
+        elif self._dtype == "long":
+            return self.long_data[index]
+        elif self._dtype == "double":
+            return self.double_data[index]
+        elif self._dtype == "float":
+            return self.float_data[index]
+
+    def tolist(self):
+        """
+        convert tensor into nested python with matching dimension
+
+        Return:
+            (list): nested list representing the tensor data
+        """
+        result = []
+        if self.ndim == 1:
+            for i in range(self.size):
+                result.append(self._get_value(i))
+        elif self.ndim == 2:
+            rows, cols = self.shape[0], self.shape[1]
+            for i in range(rows):
+                row = []
+                for j in range(cols):
+                    row.append(self._get_value(i * cols + j))
+                result.append(row)
+        elif self.ndim == 3:
+            d1, d2, d3 = self.shape[0], self.shape[1], self.shape[2]
+            for i in range(d1):
+                mat = []
+                for j in range(d2):
+                    vec = []
+                    for k in range(d3):
+                        vec.append(self._get_value(i * d2 * d3 + j * d3 + k))
+                    mat.append(vec)
+                result.append(mat)
+        else:
+            raise NotImplementedError("only support up to 3d tensor")
+        return result
+
+    @classmethod
+    def fromlist(cls, list data, str dtype="double") -> object:
+        """
+        creating tensor from nested python list
+
+        automatically infer shape from list nesting depth
+
+        Parameter:  
+            data (list): nested list of value
+            dtype (str): data type
+
+        Return:
+            (Tensor): constructed tensor from list
+        """
+        def infer_shape(lst):
+            if isinstance(lst, list):
+                subshape = infer_shape(lst[0])
+                return [len(lst)] + subshape
+            else:
+                return []
+
+        shape = infer_shape(data)
+        total_elements = 1
+        for s in shape:
+            total_elements *= s
+
+        def flatten(lst):
+            flat = []
+            for item in lst:
+                if isinstance(item, list):
+                    flat.extend(flatten(item))
+                else:
+                    flat.append(item)
+            return flat
+        flat_data = flatten(data)
+
+        return cls(tuple(shape), flat_data, dtype=dtype)
 
     cpdef str dtype(self):
         """
@@ -222,6 +310,65 @@ cdef class Tensor:
             stride *= self.shape[i]
         return stride
 
+    cpdef Tensor add(self, Tensor other):
+        """
+        perform element-wise add between two tensor of same shape
+
+        Return:
+            (Tensor): new tensor after element-wise add
+        """
+        if self.size != other.size:
+            raise ValueError("tensor must have the same number of elements")
+        if self._dtype != other._dtype:
+            raise TypeError("data type must match for add operation")
+
+        cdef Tensor result = Tensor(tuple([self.shape[i] for i in range(self.ndim)]), dtype=self._dtype)
+        cdef int i
+
+        if self._dtype == "int":
+            for i in range(self.size):
+                result.int_data[i] = self.int_data[i] + other.int_data[i]
+        elif self._dtype == "long":
+            for i in range(self.size):
+                result.long_data[i] = self.long_data[i] + other.long_data[i]
+        elif self._dtype == "double":
+            for i in range(self.size):
+                result.double_data[i] = self.double_data[i] + other.double_data[i]
+        elif self._dtype == "float":
+            for i in range(self.size):
+                result.float_data[i] = self.float_data[i] + other.float_data[i]
+        return result
+
+    cpdef Tensor multiply(self, Tensor other):
+        """
+        perform element-wise multiply two tensor of same shape
+
+        Return:
+            (Tensor): new Tensor after element-wise multiply
+        """
+        if self.size != other.size:
+            raise ValueError("tensor must have same number oof elements")
+        if self._dtype != other._dtype:
+            raise TypeError("data type must match for multiply operation")
+
+        cdef Tensor result = Tensor(tuple([self.shape[i] for i in range(self.ndim)]), dtype=self._dtype)
+        cdef int i
+
+        if self._dtype == "int":
+            for i in range(self.size):
+                result.int_data[i] = self.int_data[i] * other.int_data[i]
+        elif self._dtype == "long":
+            for i in range(self.size):
+                result.long_data[i] = self.long_data[i] * other.long_data[i]
+        elif self._dtype == "double":
+            for i in range(self.size):
+                result.double_data[i] = self.double_data[i] * other.double_data[i]
+        elif self._dtype == "float":
+            for i in range(self.size):
+                result.float_data[i] = self.float_data[i] * other.float_data[i]
+
+        return result
+
     def __repr__(self):
         """
         generate string representation of the tensor for debug
@@ -247,7 +394,10 @@ cdef class Tensor:
                 data_preview.append(f"{self.float_data[i]:.4f}")
 
         data_str = ", ".join(data_preview)
-        if self.size > 5:
+        if self.size > 50:
             data_str += ", ..."
 
         return f"Tensor(shape=({shape_str}), dtype={self._dtype}, data=[{data_str}])"
+
+    def __str__(self):
+        return self.__repr__()

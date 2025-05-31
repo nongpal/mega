@@ -68,6 +68,45 @@ def test_indexing_3d_tensor() -> None:
     assert tensor[1, 1, 1] == 8
 
 
+def test_add_1d_tensor() -> None:
+    tensor1 = mega.Tensor((3,), [1, 2, 3], dtype="long")
+    tensor2 = mega.Tensor((3,), [4, 5, 6], dtype="long")
+    result = tensor1.add(tensor2)
+
+    assert result.dtype() == "long"
+    assert result.tolist() == [5, 7, 9]
+
+
+def test_mul_1d_tensor() -> None:
+    tensor1 = mega.Tensor((3,), [1, 2, 3], dtype="long")
+    tensor2 = mega.Tensor((3,), [4, 5, 6], dtype="long")
+
+    result = tensor1.multiply(tensor2)
+
+    assert result.dtype() == "long"
+    assert result.tolist() == [4, 10, 18]
+
+
+def test_add_2d_tensor() -> None:
+    tensor1 = mega.Tensor.fromlist([[1, 2], [3, 4]], dtype="int")
+    tensor2 = mega.Tensor.fromlist([[10, 20], [30, 40]], dtype="int")
+
+    result = tensor1.add(tensor2)
+
+    assert result.dtype() == "int"
+    assert result.tolist() == [[11, 22], [33, 44]]
+
+
+def test_multiply_2d_tensor() -> None:
+    tensor1 = mega.Tensor.fromlist([[1, 2], [3, 4]], dtype="int")
+    tensor2 = mega.Tensor.fromlist([[5, 6], [7, 8]], dtype="int")
+
+    result = tensor1.multiply(tensor2)
+
+    assert result.dtype() == "int"
+    assert result.tolist() == [[5, 12], [21, 32]]
+
+
 def test_out_of_bound_indexing_tensor() -> None:
     tensor = mega.Tensor((3,), dtype="long")
     with pytest.raises(IndexError):
