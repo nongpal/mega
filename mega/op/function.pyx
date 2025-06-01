@@ -25,7 +25,7 @@
 
 from mega.utils.constant cimport PI_NUMBER, SQRT_PI
 from libc.math cimport sqrt, exp, sin, pow, cos
-
+from libc.stdlib cimport malloc, free
 
 def prime_factors(int n, bint unique=False) -> list[int]:
     """"
@@ -328,3 +328,64 @@ cdef class JordanTotient:
             denominator = pk
             res = res // denominator * numerator
         return res
+
+cpdef int mobius(int n):
+    """
+    compute mobius function for given positive integer
+
+    this implementing using sieve method to compute mu,
+    based on the smallest prime factor sieve technique
+
+    Parameter:
+        n (int): positive integer >= 1
+
+    Return:
+        (int): value of mobius function
+
+    Example:
+    >>> mobius(6)
+    1
+    """
+    if n < 1:
+        raise ValueError("input must be at least 1")
+
+    cdef int* mu = <int*>malloc((n + 1) * sizeof(int))
+    cdef int* min_prime_factor = <int*>malloc((n + 1) * sizeof(int))
+
+    if not mu or not min_prime_factor:
+        free(mu)
+        free(min_prime_factor)
+        raise MemoryError()
+
+    cdef int i, j, p
+
+    for i in range(n + 1):
+        min_prime_factor[i] = 0
+
+    # base case
+    mu[1] = 1
+    # sieve of erathoneses-style looping for fill smallest
+    # prime factors
+    for i in range(2, n + 1):
+        if min_prime_factor[i] == 0:
+            # i is prime number
+            min_prime_factor[i] = i # marking i as own smallest prime factor
+            j = i
+            # mark all multiple of i that are divisible by i
+            while j <= n:
+                for k in range(j, n + 1, j):
+                    if min_prime_factor[k] == 0:
+                        min_prime_factor[k] = i
+                j *= i
+        # get smallest prime factor of current i
+        p = min_prime_factor[i]
+        # quotient after divide i by p
+        j = i // p
+        if min_prime_factor[j] == p:
+            mu[i] = 0
+        else:
+            mu[i] = -mu[j]
+    result = mu[n]
+    free(mu)
+    free(min_prime_factor)
+    return result

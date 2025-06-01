@@ -110,3 +110,17 @@ def test_k_zero_jordan_totient() -> None:
 def test_large_input_jordan_totient() -> None:
     assert mega.JordanTotient(100, 2).compute() == 5184
     assert mega.JordanTotient(12, 2).compute() == 72
+
+
+def test_function_mobius() -> None:
+    assert mega.mobius(1) == 1
+
+
+def test_distinct_prime_mobius() -> None:
+    assert mega.mobius(2) == -1
+    assert mega.mobius(210) == 1
+
+
+def test_square_factor_mobius() -> None:
+    assert mega.mobius(4) == 0
+    assert mega.mobius(100) == 0

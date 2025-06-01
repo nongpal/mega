@@ -1,4 +1,4 @@
-from .op.function import Gamma, Haversine, JordanTotient
+from .op.function import Gamma, Haversine, JordanTotient, mobius
 from .op.arithmethic import SigmaZ, EulerPhi, Chebyshev
 from .op.tensor import Tensor
 
