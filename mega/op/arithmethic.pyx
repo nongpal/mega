@@ -24,6 +24,7 @@
 # mega/op/arithmetic.pyx
 
 from libc.math cimport pow, sqrt, log
+from libc.complex cimport pow as cpow
 
 cdef class SigmaZ:
     """    
@@ -121,23 +122,22 @@ cdef class SigmaZ:
                         total_real += power_i_real + power_oth_real
                 i += 1
             return total_real
-
-
-        import numpy as np
-        z_complex = self.z
-        total_complex = 0j
-
-        # same loop structure, using numpy for complex support
+        
+        c_z = <double complex>self.z
+        total_complex = 0
+        i = 1
         while i * i <= self.n:
             if self.n % i == 0:
                 oth_div = self.n // i
-                total_complex += np.power(i, z_complex)
-                if i != oth_div:
-                    total_complex += np.power(oth_div, z_complex)
-            i += 1
+                result_c = cpow(<double complex>i, c_z)
+                total_complex += result_c
 
-        return total_complex
-       
+                if i != oth_div:
+                    result_c = cpow(<double complex>oth_div, c_z)
+                    total_complex += result_c
+            i += 1
+        return complex(total_complex)
+
     def __repr__(self):
         """
         Return string representation of the object
