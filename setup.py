@@ -5,8 +5,9 @@ import os
 
 ext = [
     Extension(
-        "mega.utils.constant",
-        ["mega/utils/constant.pyx"],
+        "mega.op.arithmethic",
+        ["mega/op/arithmethic.pyx"],
+        include_dirs=[np.get_include()],
     ),
     Extension(
         "mega.op.function",
@@ -14,12 +15,11 @@ ext = [
         include_dirs=[np.get_include()],
     ),
     Extension(
-        "mega.op.arithmethic",
-        ["mega/op/arithmethic.pyx"],
-        include_dirs=[np.get_include()],
+        "mega.op.tensor", ["mega/op/tensor.pyx"], include_dirs=[np.get_include()]
     ),
     Extension(
-        "mega.op.tensor", ["mega/op/tensor.pyx"], include_dirs=[np.get_include()]
+        "mega.utils.constant",
+        ["mega/utils/constant.pyx"],
     ),
 ]
 

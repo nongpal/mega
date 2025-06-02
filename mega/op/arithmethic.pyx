@@ -26,8 +26,9 @@
 from libc.math cimport pow, sqrt, log
 from libc.complex cimport pow as cpow
 
+
 cdef class SigmaZ:
-    """    
+    """
     Compute the generalized σ_z(n), summary z-th powers of all positive division
 
     Formula:
@@ -83,11 +84,9 @@ cdef class SigmaZ:
         """
         cdef int i = 1
         cdef int oth_div
-        cdef double power_i, power_oth
         cdef double z_real
-        cdef complex z_complex
         cdef long total_real = 0
-        
+
         # when z == 0, just counting number of divisor
         if self.z == 0:
             total_real = 0
@@ -95,9 +94,9 @@ cdef class SigmaZ:
                 if self.n % i == 0:
                     oth_div = self.n // i
                     if i == oth_div:
-                        total_real += 1 # perfect square
+                        total_real += 1  # perfect square
                     else:
-                        total_real += 2 # two distinct divisor
+                        total_real += 2  # two distinct divisor
                 i += 1
             return total_real
 
@@ -105,7 +104,7 @@ cdef class SigmaZ:
         try:
             z_real = <double>self.z
         except TypeError:
-            z_real = -1.0 # mark as invalid for fallback logic
+            z_real = -1.0  # mark as invalid for fallback logic
 
         # if z is numeric and >= 0
         if z_real >= 0:
@@ -117,12 +116,12 @@ cdef class SigmaZ:
                     power_oth_real = <long>(pow(oth_div, z_real))
 
                     if i == oth_div:
-                        total_real += power_i_real # add once for perfect square
+                        total_real += power_i_real  # add once for perfect square
                     else:
                         total_real += power_i_real + power_oth_real
                 i += 1
             return total_real
-        
+
         c_z = <double complex>self.z
         total_complex = 0
         i = 1
@@ -143,6 +142,7 @@ cdef class SigmaZ:
         Return string representation of the object
         """
         return f"SigmaZ({self.n}, {self.z})"
+
 
 cdef class EulerPhi:
     """
@@ -267,6 +267,7 @@ cdef class EulerPhi:
     def __repr__(self):
         return f"EulerPhi({self.n})"
 
+
 cdef class Chebyshev:
     """
     compute chebyshev function ϑ(x), with formula:
@@ -330,7 +331,7 @@ cdef class Chebyshev:
                 result += log(i)
             i += 1
         return result
- 
+
     def __getitem__(self, double key):
         """
         retrieve chebyshev function from internal cache, or compute
@@ -359,6 +360,5 @@ cdef class Chebyshev:
         """
         self._cache[key] = value
 
-    
     def __repr__(self):
         return f"Chebyshev(x={self.x})"

@@ -11,3 +11,9 @@ repos:
     rev: 25.1.0
     hooks:
       - id: black
+
+  - repo: https://github.com/MarcoGorelli/cython-lint
+    rev: v0.16.6
+    hooks:
+      - id: cython-lint
+      - id: double-quote-cython-strings

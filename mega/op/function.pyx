@@ -27,6 +27,7 @@ from mega.utils.constant cimport PI_NUMBER, SQRT_PI
 from libc.math cimport sqrt, exp, sin, pow, cos
 from libc.stdlib cimport malloc, free
 
+
 def prime_factors(int n, bint unique=False) -> list[int]:
     """"
     return prime factor of positive integer n
@@ -369,7 +370,7 @@ cpdef int mobius(int n):
     for i in range(2, n + 1):
         if min_prime_factor[i] == 0:
             # i is prime number
-            min_prime_factor[i] = i # marking i as own smallest prime factor
+            min_prime_factor[i] = i  # marking i as own smallest prime factor
             j = i
             # mark all multiple of i that are divisible by i
             while j <= n:

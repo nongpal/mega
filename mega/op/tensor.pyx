@@ -39,7 +39,6 @@ cdef class Tensor:
         double_data (double*): pointer memory block for `double` type data
         float_data (float*): pointer to memory block for `float` type data
 
-    
     Example:
     >>> tensor1 = Tensor((2, 3), [1, 2, 3, 4, 5, 6], dtype='long')
     >>> tensor2 = Tensor((2, 3), [10, 20, 30, 40, 50, 60], dtype='long')
@@ -111,7 +110,7 @@ cdef class Tensor:
             else:
                 for i in range(self.size):
                     self.float_data[i] = <float>data[i]
-        
+
     def __dealloc__(self):
         """
         deallocate dynamically allocated memory when tensor was destroy
@@ -173,10 +172,9 @@ cdef class Tensor:
     def fromlist(cls, list data, str dtype="double") -> object:
         """
         creating tensor from nested python list
-
         automatically infer shape from list nesting depth
 
-        Parameter:  
+        Parameter:
             data (list): nested list of value
             dtype (str): data type
 
@@ -228,7 +226,7 @@ cdef class Tensor:
         """
         cdef tuple idx_tuple
         if isinstance(idxs, int):
-           idx_tuple = (idxs,)
+            idx_tuple = (idxs,)
         elif isinstance(idxs, tuple):
             idx_tuple = idxs
         else:
@@ -322,7 +320,9 @@ cdef class Tensor:
         if self._dtype != other._dtype:
             raise TypeError("data type must match for add operation")
 
-        cdef Tensor result = Tensor(tuple([self.shape[i] for i in range(self.ndim)]), dtype=self._dtype)
+        cdef Tensor result = Tensor(
+            tuple([self.shape[i] for i in range(self.ndim)]), dtype=self._dtype
+        )
         cdef int i
 
         if self._dtype == "int":
@@ -351,7 +351,9 @@ cdef class Tensor:
         if self._dtype != other._dtype:
             raise TypeError("data type must match for multiply operation")
 
-        cdef Tensor result = Tensor(tuple([self.shape[i] for i in range(self.ndim)]), dtype=self._dtype)
+        cdef Tensor result = Tensor(
+            tuple([self.shape[i] for i in range(self.ndim)]), dtype=self._dtype
+        )
         cdef int i
 
         if self._dtype == "int":

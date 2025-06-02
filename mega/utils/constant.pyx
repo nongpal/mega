@@ -23,15 +23,18 @@
 # cython: language_level=3
 # mega/utils/constant.pyx
 
-from libc.math cimport sqrt
-
 cdef double PI_NUMBER = 3.141592653589793238462643383279502884197
 cdef double EULER_NUMBER = 2.718281828459045235360287471352
 cdef double GAUSS_NUMBER = 0.8346268
-cdef double TAU_NUMBERS = PI_NUMBER * 2;
+cdef double TAU_NUMBERS = PI_NUMBER * 2
 cdef double SQRT_PI = 1.772453850905516027298167483341145182
 
-cdef void mat_mult(unsigned long A[2][2], unsigned long B[2][2], unsigned long result[2][2]) except *:
+
+cdef void mat_mult(
+    unsigned long A[2][2],
+    unsigned long B[2][2],
+    unsigned long result[2][2]
+) except *:
     """
     multiply 2x2 matrices A B, and storing in result variable
 
@@ -53,10 +56,14 @@ cdef void mat_mult(unsigned long A[2][2], unsigned long B[2][2], unsigned long r
     # bottom right element of result matrices
     result[1][1] = A[1][0] * B[0][1] + A[1][1] * B[1][1]
 
-cdef void mat_pow(unsigned long M[2][2], int power, unsigned long result[2][2]) except *:
+cdef void mat_pow(
+    unsigned long M[2][2],
+    int power,
+    unsigned long result[2][2]
+) except *:
     """
     raise 2x2 matrice to given power using binary exponent
-    
+
     Parameter:
         M (unsigned long[2][2]): input 2x2 matrices to be raise to power
         power (int): non-negative integer exponent
@@ -135,7 +142,7 @@ cpdef unsigned long lucas_number(int n) except 0:
             curr = next_val
         return curr
 
-    else:        
+    else:
         power = n - 1
         mat_pow(F, power, res)
         return 2 * res[0][1] + res[0][0]
@@ -145,14 +152,14 @@ cpdef long catalan_number(int n) except -1:
     compute the nth catalan number using efficient iterative algorithm
 
     catalan number are squence natural numbers that appear in many combine
-    
+
     nth catalan number is defined by recurrence relation:
     C0  = 1
     Cn+1 = (2(2n + 1) / (n + 2)) * Cn
 
     Parameter:
         n (int): index of catalan number to compute must be >= 0
-    
+
     Return:
         (long): nth catalan number
 
@@ -175,7 +182,7 @@ cpdef long catalan_number(int n) except -1:
 
     # C(i) = C(i-1) * 2*(2i - 1) // (i + 1)
     for i in range(1, n + 1):
-        # multiple current result by 2*(2i - 1) 
+        # multiple current result by 2*(2i - 1)
         # then divide by (i + 1) using integer division
         result = result * 2 * (2 * i - 1) // (i + 1)
     return result
@@ -185,12 +192,12 @@ cpdef double golden_ratio(int iteration=30) except -1.0:
     compute golden ratio using interative continued fraction
 
     golden ratio formula
-    
+
     gold = 1 + 1 / gold
 
     Parameter:
         iteration (int): number of iteration to refining approximation
-                         default value is 30 - which is sufficient for 
+                         default value is 30 - which is sufficient for
                          full floating point
 
     Return:
@@ -204,7 +211,7 @@ cpdef double golden_ratio(int iteration=30) except -1.0:
     """
     if iteration < 1:
         raise ValueError("iteration must be at least 1")
-    
+
     # initial approximation
     cdef double phi = 1.0
     cdef int i
