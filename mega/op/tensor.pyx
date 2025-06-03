@@ -202,27 +202,33 @@ cdef class Tensor:
             (Tensor): constructed tensor from list
         """
         def infer_shape(lst):
-            if isinstance(lst, list):
-                subshape = infer_shape(lst[0])
-                return [len(lst)] + subshape
-            else:
-                return []
+            shape = []
+            current_level = lst
+            while isinstance(current_level, list):
+                if not current_level:
+                    return shape
+                shape.append(len(current_level))
+                current_level = current_level[0]
+            return shape
 
         shape = infer_shape(data)
-        total_elements = 1
-        for s in shape:
-            total_elements *= s
+        if not shape:
+            raise ValueError("cannot infer shape from scalar")
 
-        def flatten(lst):
-            flat = []
-            for item in lst:
-                if isinstance(item, list):
-                    flat.extend(flatten(item))
-                else:
-                    flat.append(item)
-            return flat
-        flat_data = flatten(data)
+        cdef list flat_data = []
+        cdef list stack = [data]
 
+        while stack:
+            item = stack.pop()
+            if isinstance(item, list):
+                for x in reversed(item):
+                    stack.append(x)
+            else:
+                flat_data.append(item)
+
+        for x in flat_data:
+            if not isinstance(x, (int, float)):
+                raise TypeError(f"non-numeric value found: {type(x)}")
         return cls(tuple(shape), flat_data, dtype=dtype)
 
     cpdef str dtype(self):
@@ -338,12 +344,6 @@ cdef class Tensor:
         if self.size != other.size:
             raise ValueError("tensor must have the same number of elements")
 
-        for i in range(self.ndim):
-            if self.shape[i] != other.shape[i]:
-                raise ValueError(
-                    f"shape mismatch at dimension {i}: {self.shape} . {other.shape[i]}"
-                )
-
         if self._dtype != other._dtype:
             raise TypeError("data type must match for add operation")
 
@@ -375,12 +375,6 @@ cdef class Tensor:
         """
         if self.size != other.size:
             raise ValueError("tensor must have same number oof elements")
-
-        for i in range(self.ndim):
-            if self.shape[i] != other.shape[i]:
-                raise ValueError(
-                    f"shape mismatch at dimension {i}: {self.shape} . {other.shape[i]}"
-                )
 
         if self._dtype != other._dtype:
             raise TypeError("data type must match for multiply operation")
