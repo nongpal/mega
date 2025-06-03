@@ -337,6 +337,13 @@ cdef class Tensor:
         """
         if self.size != other.size:
             raise ValueError("tensor must have the same number of elements")
+
+        for i in range(self.ndim):
+            if self.shape[i] != other.shape[i]:
+                raise ValueError(
+                    f"shape mismatch at dimension {i}: {self.shape} . {other.shape[i]}"
+                )
+
         if self._dtype != other._dtype:
             raise TypeError("data type must match for add operation")
 
@@ -368,6 +375,13 @@ cdef class Tensor:
         """
         if self.size != other.size:
             raise ValueError("tensor must have same number oof elements")
+
+        for i in range(self.ndim):
+            if self.shape[i] != other.shape[i]:
+                raise ValueError(
+                    f"shape mismatch at dimension {i}: {self.shape} . {other.shape[i]}"
+                )
+
         if self._dtype != other._dtype:
             raise TypeError("data type must match for multiply operation")
 
