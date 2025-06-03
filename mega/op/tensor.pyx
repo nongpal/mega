@@ -126,16 +126,25 @@ cdef class Tensor:
         """
         deallocate dynamically allocated memory when tensor was destroy
 
-        make sure no memory leaks by freeing all alocated pointers
+        make sure no memory leaks by freeing all alocated pointers.
+        called automatically when tensor object was destroyed
         """
         if self.shape is not NULL:
             free(self.shape)
-        if hasattr(self, "long_data") and self.long_data is not NULL:
-            free(self.long_data)
-        if hasattr(self, "double_data") and self.double_data is not NULL:
-            free(self.double_data)
-        if hasattr(self, "float_data") and self.float_data is not NULL:
-            free(self.float_data)
+            self.shape = NULL
+        if self._dtype == "long" and self.long_data is not NULL:
+            free(<void*>self.long_data)
+            self.long_data = NULL
+        elif self._dtype == "double" and self.double_data is not NULL:
+            free(<void*>self.double_data)
+            self.double_data = NULL
+        elif self._dtype == "float" and self.float_data is not NULL:
+            free(<void*>self.float_data)
+            self.float_data = NULL
+        if hasattr(self, "int_data") and self.int_data is not None:
+            self.int_data.clear()
+        self.ndim = 0
+        self.size = 0
 
     cdef _get_value(self, int index):
         if self._dtype == "int":
