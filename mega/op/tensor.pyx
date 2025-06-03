@@ -109,6 +109,17 @@ cdef class Tensor:
                     self.double_data[i] = 0.0
             else:
                 for i in range(self.size):
+                    self.float_data[i] = <double>data[i]
+
+        elif self._dtype == "float":
+            self.float_data = <float*>malloc(self.size * sizeof(float))
+            if not self.float_data:
+                raise MemoryError("failed to allocate float data")
+            if data is None:
+                for i in range(self.size):
+                    self.float_data[i] = 0.0
+            else:
+                for i in range(self.size):
                     self.float_data[i] = <float>data[i]
 
     def __dealloc__(self):
@@ -352,7 +363,8 @@ cdef class Tensor:
             raise TypeError("data type must match for multiply operation")
 
         cdef Tensor result = Tensor(
-            tuple([self.shape[i] for i in range(self.ndim)]), dtype=self._dtype
+            tuple([self.shape[i] for i in range(self.ndim)]),
+            dtype=self._dtype
         )
         cdef int i
 
