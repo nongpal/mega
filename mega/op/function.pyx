@@ -151,12 +151,33 @@ cdef class Haversine:
         return f"Haversine(self.theta) = {Haversine(self.theta).compute()}"
 
 cdef class Gamma:
+    """
+    compute gamma function usign lanczos approximation
+
+    Attribute:
+        point (double): input value at witch evaluating gamma function
+        LANCZOS_COEFF (double[8]): coefficient using in lanczos approximation
+        cache (dict): optional dictionary for storing previously computed result for
+                        performance
+
+    Example:
+    >>> g = Gamma(5.0)
+    >>> print(g.compute())
+    24.0
+    """
     cdef double z
     cdef double[8] LANCZOS_COEFF
     cdef double point
     cdef dict cache
 
     def __cinit__(self, double point) -> None:
+        """
+        initialize gamma instance with a given point
+
+        Parameter:
+            point (double): value of z where gamma(z) will be evaluated
+                            must be positive real number
+        """
         self.LANCZOS_COEFF = [
             676.5203681218851,
             -1259.1392167224028,
@@ -175,6 +196,18 @@ cdef class Gamma:
         self.point = point
 
     cpdef double compute(self):
+        """
+        compute value of the gamma function gamma(point) using lanczos approximation
+
+        this method will be handling:
+            - special cases: gamma(n) where n is integer (factorial)
+            - half integers like gamma(0.5) = sqrt(pi)
+            - reflection formula for z < 0.5
+            - general case via lanczos approximation
+
+        Return:
+            (double): approximation of gamma(self.point)
+        """
         cdef int i
         cdef double z = self.point
         cdef double y = z
@@ -210,7 +243,8 @@ cdef class Gamma:
             return tmp
 
     def __repr__(self) -> str:
-        return f"Gamma({self.point}) = {Gamma(self.point).compute()}"
+        computed_value = self.compute()
+        return f"Gamma({self.point}) = {computed_value:.10f}"
 
 
 cdef class JordanTotient:
