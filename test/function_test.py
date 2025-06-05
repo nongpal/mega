@@ -124,3 +124,17 @@ def test_distinct_prime_mobius() -> None:
 def test_square_factor_mobius() -> None:
     assert mega.mobius(4) == 0
     assert mega.mobius(100) == 0
+
+
+def test_compute_quartic() -> None:
+    quar = mega.Quartic(1, 2, 3, 4, 5)
+    assert quar.compute(0) == 5.0
+    assert quar.compute(2) == (1 * 16) + (2 * 8) + (3 * 4) + (4 * 2) + 5
+
+
+def test_large_input_quartic() -> None:
+    quar = mega.Quartic(1, 1, 1, 1, 1)
+    x: int = 1000
+    expected = x**4 + x**3 + x**2 + x + 1
+    result = quar(x)
+    assert result == pytest.approx(expected, abs=1e-10)
