@@ -29,7 +29,7 @@ from libc.stdlib cimport malloc, free
 
 
 def prime_factors(int n, bint unique=False) -> list[int]:
-    """"
+    """
     return prime factor of positive integer n
 
     Parameter:
