@@ -424,3 +424,85 @@ cpdef int mobius(int n):
     free(mu)
     free(min_prime_factor)
     return result
+
+cdef class Quartic:
+    """
+    compute quartic polynomial function
+
+    formula quartic function:
+    f(x) = ax⁴ + bx³ + cx² + dx + e
+
+    use horner method for fast and numerical and stable eval
+
+    Example:
+    >>> quar = Quartic(1.0, 2.0, 3.0, 4.0, 5.0)
+    >>> quar.compute(2)
+    57.0
+    """
+    cdef double a, b, c, d, e
+
+    def __init__(self, double a, double b, double c, double d, double e):
+        """
+        initialize quartic function with given coeffs
+
+        Parameter:
+            a (double): coefficient of x^4
+            b (double): coefficient of x^3
+            c (double): coefficient of x^2
+            d (double): coefficient of x^
+            e (double): constant term
+        """
+        self.a = a
+        self.b = b
+        self.c = c
+        self.d = d
+        self.e = e
+
+    cpdef double compute(self, double x):
+        """
+        compute quartic polynomial at given value of x using
+        horner method
+
+        Parameter:
+            x (double): input value at which to compute polynomial
+
+        Return:
+            (double): result of compute f(x)
+
+        Example:
+        >>> quar = Quartic(1, 2, 3, 4, 5)
+        >>> quar.compute(2)
+        57.0
+        """
+        return (
+            (
+                (((self.a * x + self.b) * x + self.c) * x + self.d) * x
+            ) + self.e
+        )
+
+    def __call__(self, double x):
+        """
+        make quartic instance callable like a function
+
+        Parameter:
+            x (double): input value
+
+        Return:
+            (double): result of f(x)
+        """
+        return self.compute(x)
+
+    def coefficient(self):
+        """
+        compute current coefficient in order (a, b, c, d, e)
+
+        using for debug or rinitializing another function with
+        same parameters
+
+        Return:
+            tuple (double): (a, b, c, d, e)
+        """
+        return (self.a, self.b, self.c, self.d, self.e)
+
+    def __repr__(self):
+        return f"Quartic(a={self.a}, b={self.b}, c={self.c}, d={self.d}, e={self.e})"
